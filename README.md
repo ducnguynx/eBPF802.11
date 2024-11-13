@@ -17,7 +17,7 @@ sudo ./start.sh
 
 # stop capturing
 sudo ./stop.sh
-
+```
 ## Contributing
 This project is maintained by me & @PhamDuong1311, checking out his (github)[https://github.com/PhamDuong1311]
 Please make sure to update tests as appropriate.

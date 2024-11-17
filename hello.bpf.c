@@ -147,7 +147,7 @@ static int updateAddress(struct xdp_md *ctx) {
         
         if (isBeacon(ctx))
         {
-            char SSID[33] = "ducdeptraivl123456";
+            char SSID[33] = "emyeusensorlab";
             int len = 0;
             getSSID(ctx,SSID,&len);
             if (len<sizeof(SSID))

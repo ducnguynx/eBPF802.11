@@ -53,11 +53,11 @@ struct {
 static int isBeacon(struct xdp_md *ctx) {
     void *data = (void *)(long)ctx->data;
     void *data_end = (void *)(long)ctx->data_end;
-    if (data + 26 > data_end) {
+    if (data + 18 > data_end) {
         bpf_printk("ERR: Radio tap has a problem");
         return 0;
     }
-    data = data + 26; // pass the Radiotap header (for raspberry 26 -> 18 ?)
+    data = data + 18; // pass the Radiotap header (for raspberry 26 -> 18 ?)
     struct frameControl *fcs = data;
     if (data + sizeof(struct frameControl) > data_end) {
         bpf_printk("ERR: frameControl has a problem");
@@ -76,11 +76,11 @@ static int isBeacon(struct xdp_md *ctx) {
 static int getSSID(struct xdp_md *ctx, char* bufferSSID, int* len) {
     void *data = (void *)(long)ctx->data;
     void *data_end = (void *)(long)ctx->data_end;
-    if (data + 26 > data_end) {
+    if (data + 18 > data_end) {
         bpf_printk("ERR: Radio tap has a problem");
         return 1;
     }
-    data = data + 26; // bypass the Radiotap header (for raspberry 26 -> 18 ?)
+    data = data + 18; // bypass the Radiotap header (for raspberry 26 -> 18 ?)
     if (data + 24 > data_end) {
         bpf_printk("ERR: Beacon header has a problem");
         return 1;
@@ -117,13 +117,13 @@ static int updateAddress(struct xdp_md *ctx) {
     void *data = (void *)(long)ctx->data;
     void *data_end = (void *)(long)ctx->data_end;
 
-    if (data + sizeof(struct radiotapHeader) > data_end) {
+    if (data + 18 > data_end) {
         bpf_printk("ERR: checkpoint radio\n");
         return 0;
     }
 
     /*MAJOR PROBLEM*/
-    data = data + 26; 
+    data = data + 18; 
     wifi_header_t *header = (wifi_header_t *)data;
     if (data + sizeof(wifi_header_t) > data_end) {
         bpf_printk("ERR: checkpoint header\n");
@@ -147,7 +147,7 @@ static int updateAddress(struct xdp_md *ctx) {
         
         if (isBeacon(ctx))
         {
-            char SSID[33];
+            char SSID[33] = "ducdeptraivl123456";
             int len = 0;
             getSSID(ctx,SSID,&len);
             if (len<sizeof(SSID))

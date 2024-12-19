@@ -4,25 +4,8 @@
 #include <linux/types.h>
 
 struct radiotapHeader {
-    __u8 rev;
-    __u8 pad;
-    __u8 length_1;
-    __u8 length_2;
-    __u32 presentFlags;
-    __u8 flag;
-    __u8 datarate;
-    __u16 frequency;
-    __u16 channelFlags;
-    __u8 s2complementSignal;
-    __u8 atena;
-    __u16 rxFlags;
-    __u16 rxFlags1;
+	__u8 length[26];
 };
-typedef struct {
-    __u8 timeStamp[8];
-    __u8 beaconInterval[2];
-    __u8 capabilityInfo[2];
-} firstThreeField;
 
 typedef struct {
     __u8 tagNumber;
@@ -30,9 +13,7 @@ typedef struct {
 } infoSSID;
 
 /*structure for FCS*/
-struct frameControl {
-    __u8 fcs[2];
-};
+
 typedef struct {
     __u16 version: 2;      
     __u16 type: 2;         
@@ -54,8 +35,44 @@ typedef struct {
 	__u8 addr2[6];
 	__u8 addr3[6];
 	__u8 sequence_control[2];
+} mana_header_t;
+
+typedef struct {
+	frame_control_t frame_control;
+	__u8 duration[2];
+	__u8 addr1[6];
+	__u8 addr2[6];
+} rts_poll_header_t;
+
+typedef struct {
+	frame_control_t frame_control;
+	__u8 duration[2];
+	__u8 addr1[6];
+} cts_ack_header_t;
+
+typedef struct {
+	frame_control_t frame_control;
+	__u8 duration[2];
+	__u8 addr1[6];
+	__u8 addr2[6];
+	__u8 addr3[6];
+	__u8 sequence_control[2];
 	__u8 addr4[6];
-} wifi_header_t;
+	__u8 qos[2];
+	__u8 ht_control[4];
+
+} qos_data_header_t;
+
+typedef struct {
+	frame_control_t frame_control;
+	__u8 duration[2];
+	__u8 addr1[6];
+	__u8 addr2[6];
+	__u8 addr3[6];
+	__u8 sequence_control[2];
+	__u8 addr4[6];
+	__u8 ht_control[4];
+} data_header_t;
 
 struct val {
     __u64 countBeacon;
@@ -77,7 +94,37 @@ struct val {
     char SSID[33];
 };
 
-void classify_subtype(__u8 type, __u16 subtype, struct val *val) {
+
+int classify_frame(__u8 type, __u16 subtype) {
+    if (type == 0x00) { // Management frame
+	return 24;
+    } else if (type == 0x01) { // Control frame
+        switch (subtype) {
+            case 0x0A: 
+		return 16;
+            case 0x0B: 
+		return 16;
+            case 0x0C: 
+		return 10;
+            case 0x0D: 
+		return 10;
+            default: 
+		return 24;
+        }
+    } else if (type == 0x02) { // Data frame
+	switch (subtype) {
+	    case 0x00:
+	    	return 34;
+	    case 0x08:
+	    	return 36;
+	    default:
+	    	return 24;
+	}
+    } return 24;
+ 
+}
+
+void count_frame(__u8 type, __u16 subtype, struct val *val) {
     if (type == 0x00) { // Management frame
         switch (subtype) {
             case 0x00: 
